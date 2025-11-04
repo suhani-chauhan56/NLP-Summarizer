@@ -13,7 +13,8 @@ import summariesRouter from './routes/summaries.js';
 const app = express();
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
-app.use(cors({ origin: allowedOrigin, credentials: true }));
+
+app.use(cors({  origin: ["https://nlp-summarizer-zanw.vercel.app/"], origin: allowedOrigin, credentials: true }));
 app.use(helmet());
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
