@@ -29,10 +29,7 @@ const router = Router();
 
 // 🧩 Multer config for file uploads (PDF/Image) - use disk storage for reliability
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, os.tmpdir()),
-    filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
 });
 
@@ -135,11 +132,17 @@ router.post("/", requireAuth, upload.single("image"), async (req, res) => {
 // ----------------------------------
 // 📄 Upload & summarize PDF report
 // ----------------------------------
-router.post("/pdf",requireAuth, upload.single('file'), async (req, res) => {
+router.post("/pdf", requireAuth, upload.any(), async (req, res) => {
   try {
     console.log("📥 Received PDF upload request");
 
-    const file = req.file
+    // Accept any field name; pick first PDF-like file
+    const files = Array.isArray(req.files) ? req.files : []
+    let file = files.find(f => {
+      const mime = (f.mimetype || '').toLowerCase()
+      const name = (f.originalname || '').toLowerCase()
+      return mime === 'application/pdf' || mime === 'application/x-pdf' || name.endsWith('.pdf')
+    }) || files[0]
     if (!file) {
       return res.status(400).json({ message: "PDF file is required" });
     }

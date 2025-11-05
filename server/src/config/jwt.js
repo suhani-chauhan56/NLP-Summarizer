@@ -19,10 +19,12 @@ export function verifyRefreshToken(token) {
   return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 }
 
+const isProd = process.env.NODE_ENV === 'production';
+
 export const cookieOptions = {
   httpOnly: true,
-  sameSite: 'lax',
-  secure: false,
+  sameSite: isProd ? 'none' : 'lax',
+  secure: isProd,
   path: '/',
 };
 

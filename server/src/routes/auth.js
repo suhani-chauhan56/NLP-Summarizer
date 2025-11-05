@@ -7,6 +7,11 @@ import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
+// Info endpoint to avoid "Cannot GET /auth"
+router.get('/', async (_req, res) => {
+  return res.json({ ok: true, usage: ['POST /auth/signup', 'POST /auth/login', 'POST /auth/logout', 'GET /auth/me', 'POST /auth/refresh'] });
+});
+
 router.post('/signup', async (req, res) => {
   try {
     const parsed = signupSchema.safeParse(req.body);
