@@ -12,57 +12,43 @@ import summariesRouter from './routes/summaries.js';
 
 const app = express();
 
-// ✅ Allow CORS only from your frontend domain (no trailing slash!)
-const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://nlp-summarizer-m2dz.vercel.app';
-app.use(cors({
-  origin: allowedOrigin,
-  credentials: true,
-}));
+const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
 
-// ✅ Security & parsing middlewares
+app.use(cors({  origin: ["https://nlp-summarizer-zanw.vercel.app/"], origin: allowedOrigin, credentials: true }));
 app.use(helmet());
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 
-// ✅ Rate limiter (avoid too many requests)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-});
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
 app.use(limiter);
 
-// ✅ Routes
-app.get('/', (req, res) => res.send('Server is running ✅'));
-app.get('/health', (req, res) => res.json({ ok: true }));
-app.use('/auth', authRouter);
-app.use('/reports', reportsRouter);
-app.use('/summaries', summariesRouter);
+app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// ✅ Error handling
+app.use('/api/auth', authRouter);
+app.use('/api/reports', reportsRouter);
+app.use('/api/summaries', summariesRouter);
+
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.message);
-  res.status(err.status || 500).json({ message: err.message || 'Server error' });
+  const status = err.status || 500;
+  res.status(status).json({ message: err.message || 'Server error' });
 });
 
-// ✅ MongoDB connection
-if (!mongoose.connection.readyState) {
-  const MONGODB_URI = process.env.MONGODB_URI;
-  if (MONGODB_URI) {
-    mongoose
-      .connect(MONGODB_URI)
-      .then(() => console.log('✅ MongoDB connected'))
-      .catch((err) => console.error('❌ MongoDB error:', err.message));
-  } else {
-    console.warn('⚠️ MONGODB_URI missing');
+const MONGODB_URI = process.env.MONGODB_URI || '';
+const PORT = process.env.PORT || 5000;
+
+async function start() {
+  try {
+    if (!MONGODB_URI) {
+      console.warn('MONGODB_URI not set. Server will start without DB connection.');
+    } else {
+      await mongoose.connect(MONGODB_URI);
+      console.log('MongoDB connected');
+    }
+    app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+  } catch (e) {
+    console.error('Failed to start server', e);
+    process.exit(1);
   }
 }
 
-// ✅ For Vercel (export default)
-// Vercel expects a function export (not .listen)
-export default app;
-
-// ✅ For local development (run `npm run dev`)
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`🚀 Server running locally on port ${PORT}`));
-}
+start();
