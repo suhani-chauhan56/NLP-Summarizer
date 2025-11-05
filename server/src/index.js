@@ -62,7 +62,6 @@ if (!mongoose.connection.readyState) {
 export default app;
 
 // ✅ For local development (run `npm run dev`)
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`🚀 Server running locally on port ${PORT}`));
-}
+const port = process.env.PORT || 5000;
+app.listen(port, '0.0.0.0', () => console.log(`Server running on port ${port}`));
+
