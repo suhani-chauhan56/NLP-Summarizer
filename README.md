@@ -1,6 +1,6 @@
 # NPL Clinic
 
-Full-stack MERN app to upload clinical text or report images, OCR them, and generate AI summaries.
+Full-stack MERN app to upload clinical text or report images, OCR them, and generate AI summaries. 
 
 ## Structure
 - client/ — React + Vite + Tailwind
